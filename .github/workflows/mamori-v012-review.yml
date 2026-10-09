@@ -1,0 +1,45 @@
+name: Review and publish Mamori 0.1.2 preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/mamori-v012-review.yml'
+      - 'mamori-toolbox/build/patch_v012.py'
+      - 'mamori-toolbox/build/guide_v012.py'
+      - 'mamori-toolbox/build/publish_v012.py'
+permissions:
+  contents: write
+concurrency:
+  group: mamori-v012-publication
+  cancel-in-progress: false
+jobs:
+  review-and-publish:
+    if: github.repository == 'hakutyonn/Upload-files'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Fetch public build scripts at the triggering commit
+        env:
+          REF: ${{ github.sha }}
+        shell: python
+        run: |
+          import os, pathlib, urllib.request
+          for name in ['patch_v012.py','guide_v012.py','publish_v012.py']:
+              url='https://raw.githubusercontent.com/hakutyonn/Upload-files/'+os.environ['REF']+'/mamori-toolbox/build/'+name
+              with urllib.request.urlopen(url, timeout=30) as response:
+                  data=response.read(100000)
+              compile(data, name, 'exec')
+              pathlib.Path(name).write_bytes(data)
+      - name: Install isolated build dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --disable-pip-version-check playwright==1.57.0 Pillow==12.0.0 pypdf==6.1.1
+          .venv/bin/python -m playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk fonts-dejavu-core
+      - name: Build free files and verify actual UI and file startup
+        run: .venv/bin/python publish_v012.py build
+      - name: Publish versioned free files and verify unsigned-in downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .venv/bin/python publish_v012.py publish
