@@ -1,0 +1,43 @@
+name: Verify customer download without sign-in
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/mamori-public-download-check.yml']
+permissions:
+  contents: read
+jobs:
+  download:
+    if: github.repository == 'hakutyonn/Upload-files'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Download without credentials and check ZIP and instructions
+        shell: python
+        run: |
+          import urllib.request, hashlib, io, zipfile
+          base = 'https://raw.githubusercontent.com/hakutyonn/Upload-files/main/mamori-toolbox/v0.1.1-preview/'
+          def download(name):
+              request = urllib.request.Request(base + name)
+              request.add_header('User-Agent', 'Mamori-Anonymous-Download-Check')
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  if response.status != 200:
+                      raise RuntimeError('Not publicly downloadable')
+                  return response.read()
+          data = download('mamori-toolbox-0.1.1-preview.zip')
+          expected = 'a615b528897afcbe6fe25da7aa4b87d2f8d63b097eec8cf0879c6d03d76cebee'
+          if len(data) != 63252 or hashlib.sha256(data).hexdigest() != expected:
+              raise RuntimeError('ZIP checksum mismatch')
+          with zipfile.ZipFile(io.BytesIO(data)) as archive:
+              if archive.testzip() is not None or len(archive.namelist()) != 13:
+                  raise RuntimeError('ZIP structure or CRC mismatch')
+              instructions = archive.read('MamoriToolbox/USER_GUIDE.txt')
+              if instructions != download('USER_GUIDE.txt'):
+                  raise RuntimeError('Public instructions differ from package')
+              guide = instructions.decode('utf-8-sig')
+              if not all(s in guide for s in ('START.html', 'すべて展開', '未検証', '無料')):
+                  raise RuntimeError('Required instructions missing')
+              app = archive.read('MamoriToolbox/START.html').decode('utf-8')
+              if 'USER_GUIDE.html' not in app or '手順書を開く' not in app:
+                  raise RuntimeError('Help link missing')
+          print('PASS: anonymous HTTPS download, 63252 bytes, SHA-256 verified, 13 intact files, manual included and matching.')
+          print('This is a public download check, not a Windows execution or malware safety certification.')
