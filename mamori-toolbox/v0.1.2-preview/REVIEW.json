@@ -1,0 +1,212 @@
+{
+  "passed": 48,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "CSP allows only the reviewed scripts",
+      "pass": true
+    },
+    {
+      "name": "Manual opens separately",
+      "pass": true
+    },
+    {
+      "name": "Script disabled before administrator confirmation",
+      "pass": true
+    },
+    {
+      "name": "Script enabled after confirmation",
+      "pass": true
+    },
+    {
+      "name": "Redaction regression long",
+      "pass": true
+    },
+    {
+      "name": "Manual review gate long",
+      "pass": true
+    },
+    {
+      "name": "Redaction regression json",
+      "pass": true
+    },
+    {
+      "name": "Manual review gate json",
+      "pass": true
+    },
+    {
+      "name": "Redaction regression stripe",
+      "pass": true
+    },
+    {
+      "name": "Manual review gate stripe",
+      "pass": true
+    },
+    {
+      "name": "Redaction regression bearer",
+      "pass": true
+    },
+    {
+      "name": "Manual review gate bearer",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot home",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot entry",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot entry",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot entry-saved",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot windows",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot url",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot redact",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot redact-output",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot recovery",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot recovery-metrics",
+      "pass": true
+    },
+    {
+      "name": "Real annotated screenshot hash",
+      "pass": true
+    },
+    {
+      "name": "Actual JSON download",
+      "pass": true
+    },
+    {
+      "name": "Saved inventory reload",
+      "pass": true
+    },
+    {
+      "name": "Actual TXT download",
+      "pass": true
+    },
+    {
+      "name": "Input change revokes export",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 1366 home",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 1366 entry",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 1366 windows",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 1366 url",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 1366 redact",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 1366 recovery",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 390 home",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 390 entry",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 390 windows",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 390 url",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 390 redact",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 390 recovery",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 360 home",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 360 entry",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 360 windows",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 360 url",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 360 redact",
+      "pass": true
+    },
+    {
+      "name": "No horizontal overflow 360 recovery",
+      "pass": true
+    },
+    {
+      "name": "No automatic external HTTP",
+      "pass": true
+    },
+    {
+      "name": "No JavaScript errors",
+      "pass": true
+    },
+    {
+      "name": "All 11 annotated screenshots included",
+      "pass": true
+    }
+  ],
+  "automaticHTTP": [],
+  "jsErrors": [],
+  "scope": "Chromium DOM-loaded real HTML, synthetic example data",
+  "WindowsExecution": "not tested",
+  "WindowsMacIPhone": "not tested",
+  "thirdPartyReviewAndSigning": "not performed",
+  "linuxRunnerDirectFileStartup": "passed",
+  "linuxRunnerActualWebCrypto": "equal sample files compared; this is not a restoration or infection test",
+  "manualPages": 13,
+  "regressionGroups": 7,
+  "version": "0.1.2-preview",
+  "publication": "preview, not stable release or third-party certification",
+  "zipSHA256": "2baa8bd3770742b9bad519edcf738f3cf1275b88e1932ec0a551348cb5dc4135",
+  "zipBytes": 2064855
+}
