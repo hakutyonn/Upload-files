@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Assemble only the approved archive and verify before publishing
+      - name: Verify and publish only the approved free files
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -36,10 +36,11 @@ jobs:
           def read(path):
               obj = request('/contents/' + path + '?ref=' + ref)
               if obj.get('encoding') != 'base64':
-                  raise RuntimeError('Unexpected file encoding')
+                  raise RuntimeError('Unexpected encoding')
               return base64.b64decode(obj['content'])
           m = json.loads(read('mamori-toolbox/build/manifest.json'))
-          if m['version'] != '0.1.1-preview' or m['archive_sha256'] != '093f6474c6d57b81fc65b817162b476182b879ceac544c1f5091641cb9f108dd':
+          digest = '8bde93833ae23c2fb6210e531ad65debefab51d740ecf5ad1661559d047d4a89'
+          if m['version'] != '0.1.1-preview' or m['archive_sha256'] != digest or len(m['chunks']) != 8:
               raise RuntimeError('Unapproved manifest')
           chunks = []
           for i, item in enumerate(m['chunks']):
@@ -50,7 +51,7 @@ jobs:
                   raise RuntimeError('Chunk checksum mismatch')
               chunks.append(b)
           packed = b''.join(chunks)
-          if len(packed) != 43184 or hashlib.sha256(packed).hexdigest() != m['archive_sha256']:
+          if len(packed) != 42768 or hashlib.sha256(packed).hexdigest() != digest:
               raise RuntimeError('Archive checksum mismatch')
           raw = lzma.decompress(packed, memlimit=134217728)
           expected = {'00_README.txt','CHECKS_AND_LIMITS.txt','FREE_USE.txt','SHA256SUMS.txt','START.html','USER_GUIDE.html','USER_GUIDE.txt','samples/README.txt','samples/original-example.txt','samples/restored-different-example.txt','samples/restored-same-example.txt','samples/windows-demo.json','tools/windows-readonly.ps1'}
@@ -66,10 +67,14 @@ jobs:
                   files[name] = t.extractfile(member).read()
           if set(files) != expected:
               raise RuntimeError('Missing files')
+          checked = set()
           for line in files['SHA256SUMS.txt'].decode().splitlines():
-              digest, name = line.split('  ', 1)
-              if name not in files or hashlib.sha256(files[name]).hexdigest() != digest:
+              h, name = line.split('  ', 1)
+              if name not in files or name in checked or hashlib.sha256(files[name]).hexdigest() != h:
                   raise RuntimeError('Inner checksum mismatch')
+              checked.add(name)
+          if checked != expected - {'SHA256SUMS.txt'}:
+              raise RuntimeError('Incomplete checksums')
           result = io.BytesIO()
           with zipfile.ZipFile(result, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
               for name in sorted(files):
@@ -78,25 +83,24 @@ jobs:
                   zi.external_attr = 0o644 << 16
                   z.writestr(zi, files[name], compresslevel=9)
           download = result.getvalue()
-          target_hash = '65d7992acf6874e416ca29f1a3dfe23c6e75ca5f978938d51081bd2db5f21249'
-          if len(download) != 63165 or hashlib.sha256(download).hexdigest() != target_hash:
-              raise RuntimeError('Final ZIP differs from locally tested package')
+          target_hash = 'a615b528897afcbe6fe25da7aa4b87d2f8d63b097eec8cf0879c6d03d76cebee'
+          if len(download) != 63252 or hashlib.sha256(download).hexdigest() != target_hash:
+              raise RuntimeError('ZIP differs from locally tested package')
           with zipfile.ZipFile(io.BytesIO(download)) as z:
               if z.testzip() is not None:
-                  raise RuntimeError('ZIP is corrupt')
-          outputs = {'mamori-toolbox-0.1.1-preview.zip': download, 'mamori-toolbox-0.1.1-preview.sha256': (target_hash + '  mamori-toolbox-0.1.1-preview.zip\n').encode(), 'USER_GUIDE.html': files['USER_GUIDE.html'], 'USER_GUIDE.txt': files['USER_GUIDE.txt']}
+                  raise RuntimeError('Corrupt ZIP')
+          outputs = {'mamori-toolbox-0.1.1-preview.zip':download, 'mamori-toolbox-0.1.1-preview.sha256':(target_hash+'  mamori-toolbox-0.1.1-preview.zip\n').encode(), 'USER_GUIDE.html':files['USER_GUIDE.html'], 'USER_GUIDE.txt':files['USER_GUIDE.txt']}
           for name, data in outputs.items():
               path = '/contents/mamori-toolbox/v0.1.1-preview/' + name
               try:
                   existing = request(path + '?ref=main')
               except urllib.error.HTTPError as e:
-                  if e.code != 404:
-                      raise
+                  if e.code != 404: raise
                   existing = None
               if existing is not None:
                   wanted = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
                   if existing['sha'] != wanted:
-                      raise RuntimeError('Existing published file differs; refusing overwrite')
+                      raise RuntimeError('Refusing to overwrite a different published file')
                   continue
-              request(path, {'message':'Publish verified free Mamori download with manual', 'content':base64.b64encode(data).decode(), 'branch':'main'})
-          print('Published 63165-byte ZIP; SHA-256:', target_hash)
+              request(path, {'message':'Publish verified free Mamori tools and manual','content':base64.b64encode(data).decode(),'branch':'main'})
+          print('Published ZIP, 63252 bytes, SHA-256:', target_hash)
