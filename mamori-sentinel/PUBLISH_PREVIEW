@@ -1,1 +1,1 @@
-Publish the free Sentinel MVP preview only after the workflow tests pass.
+Publish Sentinel 0.1.1-preview after unit tests and packaging checks pass.
