@@ -1,0 +1,12 @@
+{
+  "interval_seconds": 60,
+  "watch_paths": [
+    "sample-watch"
+  ],
+  "max_files": 5000,
+  "max_file_size_mb": 20,
+  "check_windows_security_events": true,
+  "check_defender_status": true,
+  "dashboard_port": 8765,
+  "auto_remediation": false
+}
