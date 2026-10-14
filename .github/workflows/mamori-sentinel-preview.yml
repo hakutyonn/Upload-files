@@ -23,7 +23,7 @@ jobs:
         run: |
           python -m unittest discover -s mamori-sentinel/tests -v
           python mamori-sentinel/src/mamori_guardian.py --self-test --config mamori-sentinel/config/config.json
-          python -m py_compile mamori-sentinel/src/mamori_guardian.py mamori-sentinel/src/dashboard.py mamori-sentinel/src/local_ai_summary.py
+          python -m py_compile mamori-sentinel/src/mamori_guardian.py mamori-sentinel/src/dashboard.py mamori-sentinel/src/local_ai_summary.py mamori-sentinel/src/supervisor.py
       - name: Build a minimal distribution ZIP
         id: build
         shell: python
@@ -32,7 +32,7 @@ jobs:
           root = pathlib.Path('mamori-sentinel')
           out = pathlib.Path('MamoriSentinel-MVP.zip')
           include = ['README.md','LICENSE','SECURITY.md','config/config.json','sample-watch/README.txt',
-                     'src/mamori_guardian.py','src/dashboard.py','src/local_ai_summary.py',
+                     'src/mamori_guardian.py','src/dashboard.py','src/local_ai_summary.py','src/supervisor.py',
                      'tests/test_rules.py','docs/USER_GUIDE.html','docs/THREAT_MODEL.md',
                      'docs/ROADMAP.md','docs/RELEASE-CHECKLIST.md']
           with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED,compresslevel=8) as z:
@@ -54,7 +54,7 @@ jobs:
           import base64, hashlib, json, os, pathlib, time, urllib.error, urllib.request
           repo = os.environ['GITHUB_REPOSITORY']
           token = os.environ['GH_TOKEN']
-          prefix = 'mamori-sentinel/v0.1.0-preview/'
+          prefix = 'mamori-sentinel/v0.1.1-preview/'
           api = 'https://api.github.com/repos/'+repo
           def req(path, body=None):
               request = urllib.request.Request(api+path, data=None if body is None else json.dumps(body).encode(),
