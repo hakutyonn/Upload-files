@@ -6,13 +6,13 @@
 
 ## NEW：24時間監視を目指す Sentinel 試作版
 
-### [Sentinel MVPをダウンロード（監視エージェント＋ローカル画面＋手順書）](https://raw.githubusercontent.com/hakutyonn/Upload-files/main/mamori-sentinel/v0.1.0-preview/MamoriSentinel-MVP.zip)
+### [Sentinel MVPをダウンロード（監視エージェント＋ローカル画面＋手順書）](https://raw.githubusercontent.com/hakutyonn/Upload-files/main/mamori-sentinel/v0.1.1-preview/MamoriSentinel-MVP.zip)
 
-[操作手順書（HTML）](https://github.com/hakutyonn/Upload-files/blob/main/mamori-sentinel/v0.1.0-preview/USER_GUIDE.html) ／ [説明・制限・起動方法](https://github.com/hakutyonn/Upload-files/blob/main/mamori-sentinel/v0.1.0-preview/README.md) ／ [SHA-256](https://github.com/hakutyonn/Upload-files/blob/main/mamori-sentinel/v0.1.0-preview/SHA256SUMS.txt)
+[操作手順書（HTML）](https://github.com/hakutyonn/Upload-files/blob/main/mamori-sentinel/v0.1.1-preview/USER_GUIDE.html) ／ [説明・制限・起動方法](https://github.com/hakutyonn/Upload-files/blob/main/mamori-sentinel/v0.1.1-preview/README.md) ／ [SHA-256](https://github.com/hakutyonn/Upload-files/blob/main/mamori-sentinel/v0.1.1-preview/SHA256SUMS.txt)
 
-これは **0.1.0-preview の試作版**です。指定フォルダーのファイル変更、Windowsの一部セキュリティイベント、Microsoft Defenderの一部状態を読み取り専用で記録し、ローカル画面で確認できます。ローカルAIによる説明サンプルも任意で含みます。
+これは **0.1.1-preview の試作版**です。指定フォルダーのファイル変更、Windowsの一部セキュリティイベント、Microsoft Defenderの一部状態を読み取り専用で記録し、ローカル画面で確認できます。異常終了時に監視プロセスの再起動を試みるSupervisorと、ローカルAI説明サンプルも含みます。
 
-**重要：本版は24時間稼働を保証せず、OSやファイルを自動修復しません。** 企業本番向けの完成品ではありません。サービス化、停止監視、通知、集中管理、署名付き更新、実機試験、第三者レビューが未完了です。既存のEDR・ウイルス対策を置き換えないでください。AIの出力をコマンドとして実行しません。
+**重要：本版は24時間稼働を保証せず、OSや業務ファイルを自動修復しません。Supervisorは監視プロセスの異常終了後の再起動を試みますが、PC停止・ログオフ・OS障害は直せません。** 企業本番向けの完成品ではありません。サービス化、停止監視、通知、集中管理、署名付き更新、実機試験、第三者レビューが未完了です。既存のEDR・ウイルス対策を置き換えないでください。AIの出力をコマンドとして実行しません。
 
 ---
 
