@@ -1,0 +1,95 @@
+name: Build and publish free Sentinel MVP
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mamori-sentinel/PUBLISH_PREVIEW'
+permissions:
+  contents: write
+concurrency:
+  group: mamori-sentinel-preview-publish
+  cancel-in-progress: false
+jobs:
+  test-build-publish:
+    if: github.repository == 'hakutyonn/Upload-files'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run unit tests and safe-default check
+        run: |
+          python -m unittest discover -s mamori-sentinel/tests -v
+          python mamori-sentinel/src/mamori_guardian.py --self-test --config mamori-sentinel/config/config.json
+          python -m py_compile mamori-sentinel/src/mamori_guardian.py mamori-sentinel/src/dashboard.py mamori-sentinel/src/local_ai_summary.py
+      - name: Build a minimal distribution ZIP
+        id: build
+        shell: python
+        run: |
+          import hashlib, pathlib, zipfile
+          root = pathlib.Path('mamori-sentinel')
+          out = pathlib.Path('MamoriSentinel-MVP.zip')
+          include = ['README.md','LICENSE','SECURITY.md','config/config.json','sample-watch/README.txt',
+                     'src/mamori_guardian.py','src/dashboard.py','src/local_ai_summary.py',
+                     'tests/test_rules.py','docs/USER_GUIDE.html','docs/THREAT_MODEL.md',
+                     'docs/ROADMAP.md','docs/RELEASE-CHECKLIST.md']
+          with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED,compresslevel=8) as z:
+              for name in include:
+                  p = root / name
+                  if not p.is_file(): raise RuntimeError('Missing distribution file: '+name)
+                  z.write(p, 'MamoriSentinel-MVP/'+name)
+              if z.testzip() is not None: raise RuntimeError('ZIP CRC check failed')
+          data = out.read_bytes()
+          digest = hashlib.sha256(data).hexdigest()
+          pathlib.Path('SHA256SUMS.txt').write_text(digest+'  MamoriSentinel-MVP.zip\n',encoding='utf-8')
+          print('ZIP bytes:',len(data),'SHA-256:',digest)
+      - name: Publish tested free files and verify anonymous downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        shell: python
+        run: |
+          import base64, hashlib, json, os, pathlib, time, urllib.error, urllib.request
+          repo = os.environ['GITHUB_REPOSITORY']
+          token = os.environ['GH_TOKEN']
+          prefix = 'mamori-sentinel/v0.1.0-preview/'
+          api = 'https://api.github.com/repos/'+repo
+          def req(path, body=None):
+              request = urllib.request.Request(api+path, data=None if body is None else json.dumps(body).encode(),
+                  method='GET' if body is None else 'PUT',
+                  headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json',
+                           'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'})
+              with urllib.request.urlopen(request, timeout=45) as response: return json.load(response)
+          files = {
+              'MamoriSentinel-MVP.zip': pathlib.Path('MamoriSentinel-MVP.zip').read_bytes(),
+              'SHA256SUMS.txt': pathlib.Path('SHA256SUMS.txt').read_bytes(),
+              'USER_GUIDE.html': pathlib.Path('mamori-sentinel/docs/USER_GUIDE.html').read_bytes(),
+              'README.md': pathlib.Path('mamori-sentinel/README.md').read_bytes()
+          }
+          def sha(b): return hashlib.sha256(b).hexdigest()
+          for name, data in files.items():
+              path = prefix+name
+              try:
+                  old = req('/contents/'+path+'?ref=main')
+              except urllib.error.HTTPError as e:
+                  if e.code != 404: raise
+                  old = None
+              blobsha = hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              if old and old.get('sha') == blobsha: continue
+              body = {'message':'Publish tested free Sentinel preview: '+name,
+                      'content':base64.b64encode(data).decode(),'branch':'main'}
+              if old: body['sha'] = old['sha']
+              req('/contents/'+path, body)
+          for name, data in files.items():
+              url = 'https://raw.githubusercontent.com/'+repo+'/main/'+prefix+name
+              for attempt in range(5):
+                  try:
+                      with urllib.request.urlopen(url, timeout=30) as response: got = response.read(10_000_000)
+                      if sha(got) != sha(data): raise RuntimeError('Anonymous hash mismatch: '+name)
+                      break
+                  except (urllib.error.URLError, RuntimeError):
+                      if attempt == 4: raise
+                      time.sleep(3)
+          print('Public download files published and SHA-256 verified anonymously.')
